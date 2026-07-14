@@ -7,7 +7,10 @@ updates:
       day: monday
       time: "09:00"
       timezone: Asia/Seoul
-    open-pull-requests-limit: 5
+    # The published model is serialized against exact ML versions. Routine
+    # version bumps require retraining and artifact validation; GitHub security
+    # alerts and security-update PRs remain enabled separately.
+    open-pull-requests-limit: 0
     groups:
       python-minor-and-patch:
         update-types:
