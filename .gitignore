@@ -1,0 +1,46 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node and hosting state
+node_modules/
+.vercel/
+
+# Downloaded or derived data
+Data/raw/
+Data/processed/
+Data/**/*.db
+Data/**/*.sqlite*
+
+# Local model builds; the reviewed contest model is explicitly allowed
+Models/**/classification_report.csv
+Models/**/feature_importance.csv
+Models/**/sample_predictions.csv
+
+# User/private work products
+Artifacts/
+output/
+tmp/
+.codex/
+.codex_recovery/
+chrome-debug-profile/
+*.har
+
+# Office and OS temporary files
+~$*
+Thumbs.db
+.DS_Store

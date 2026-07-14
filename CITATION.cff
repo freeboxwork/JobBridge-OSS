@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use JobBridge in research or a public-interest project, please cite it using this metadata."
+type: software
+title: "JobBridge: Accessible job exploration for people with disabilities"
+abstract: >-
+  JobBridge is an open-source service that supports accessible job discovery,
+  profile-based occupation exploration, and explainable recommendations for
+  people with disabilities.
+authors:
+  - name: "JobBridge contributors"
+license: Apache-2.0
+repository-code: "https://github.com/freeboxwork/JobBridge-OSS"
+url: "https://github.com/freeboxwork/JobBridge-OSS"
+keywords:
+  - accessibility
+  - disability inclusion
+  - employment
+  - explainable recommendations
+  - open source

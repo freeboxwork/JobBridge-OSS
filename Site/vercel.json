@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/v1/:path*",
+      "destination": "https://example.execute-api.ap-northeast-2.amazonaws.com/v1/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://example.execute-api.ap-northeast-2.amazonaws.com/health"
+    }
+  ]
+}

@@ -1,0 +1,1707 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2f3135">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232f3135'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial,sans-serif' font-size='22' font-weight='700' fill='white'%3EJB%3C/text%3E%3C/svg%3E">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.4"></script>
+  <title>JobBridge 관리자 페이지</title>
+<style>
+    :root{
+      --bg:#eeeeee;
+      --sidebar:#2f3135;
+      --sidebar-dark:#25272b;
+      --blue:#4268f5;
+      --orange:#ef3d1e;
+      --paper:#ffffff;
+      --line:#dddddd;
+      --line-soft:#eeeeee;
+      --ink:#222222;
+      --text:#555555;
+      --muted:#888888;
+      --green:#189759;
+      --red:#d93025;
+      --yellow:#ffe83b;
+      --shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:#f6f6f6;
+      color:var(--text);
+      font-family:Pretendard,"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      line-height:1.55;
+    }
+    h1,h2,h3,p{margin:0}
+    a{color:inherit;text-decoration:none}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+
+    .admin-frame{
+      display:grid;
+      grid-template-columns:248px minmax(0,1fr);
+      min-height:860px;
+      background:var(--bg);
+    }
+    .admin-frame.sidebar-collapsed{
+      grid-template-columns:76px minmax(0,1fr);
+    }
+
+    .sidebar{
+      background:var(--sidebar);
+      color:#d9d9d9;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .site-head{
+      height:72px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:0 20px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:var(--sidebar-dark);
+      position:relative;
+    }
+    .sidebar-toggle{
+      width:30px;
+      height:30px;
+      margin-left:auto;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-size:15px;
+      font-weight:900;
+    }
+    .logo{
+      width:34px;
+      height:34px;
+      border-radius:9px;
+      background:#ffffff;
+      color:#222;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+    }
+    .site-title{
+      min-width:0;
+    }
+    .site-head strong{
+      color:#ffffff;
+      font-size:15px;
+      display:block;
+    }
+    .site-head span{
+      color:#aaa;
+      font-size:12px;
+      display:block;
+      margin-top:2px;
+    }
+    .nav{
+      padding:8px 0 16px;
+      position:relative;
+    }
+    .nav-section-title{
+      padding:18px 22px 7px;
+      color:#9a9a9a;
+      font-size:12px;
+      font-weight:800;
+    }
+    .nav-item{
+      height:48px;
+      padding:0 22px;
+      display:flex;
+      align-items:center;
+      gap:13px;
+      color:#dadada;
+      font-size:14px;
+      font-weight:700;
+      position:relative;
+    }
+    .nav-item.active{
+      background:var(--blue);
+      color:#ffffff;
+    }
+    .nav-icon{
+      width:24px;
+      height:24px;
+      color:currentColor;
+      opacity:.92;
+      display:inline-grid;
+      place-items:center;
+      flex:0 0 24px;
+    }
+    .nav-icon svg{
+      width:20px;
+      height:20px;
+      stroke:currentColor;
+      fill:none;
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .nav-label{white-space:nowrap}
+    .sidebar-foot{
+      margin-top:auto;
+      height:54px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:0 20px;
+      background:var(--sidebar-dark);
+      color:#eee;
+      font-size:14px;
+      font-weight:700;
+    }
+    .admin-frame.sidebar-collapsed .site-head{
+      justify-content:center;
+      padding:0;
+    }
+    .admin-frame.sidebar-collapsed .site-title,
+    .admin-frame.sidebar-collapsed .sidebar-foot,
+    .admin-frame.sidebar-collapsed .nav-label{
+      display:none;
+    }
+    .admin-frame.sidebar-collapsed .sidebar-toggle{
+      position:absolute;
+      right:-15px;
+      top:21px;
+      z-index:8;
+      background:var(--blue);
+      border-color:var(--blue);
+      box-shadow:0 3px 10px rgba(0,0,0,.22);
+    }
+    .admin-frame.sidebar-collapsed .nav-item{
+      justify-content:center;
+      padding:0;
+      gap:0;
+    }
+    .admin-frame.sidebar-collapsed .nav-icon{
+      width:auto;
+      font-size:19px;
+    }
+
+    .content{
+      min-width:0;
+      display:grid;
+      grid-template-rows:72px 1fr;
+    }
+    .topbar{
+      background:#ffffff;
+      border-bottom:1px solid #dadada;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 28px;
+      position:relative;
+    }
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .topbar-title{
+      font-size:18px;
+      color:#333;
+      font-weight:900;
+    }
+    .preview-link{
+      color:#777;
+      font-size:13px;
+      padding-left:10px;
+      border-left:1px solid #ddd;
+    }
+    .logout{
+      height:36px;
+      padding:0 18px;
+      border:1px solid #d9d9d9;
+      background:#fff;
+      color:#666;
+      font-weight:700;
+    }
+    .admin-auth-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .admin-auth-state{
+      color:#777;
+      font-size:12px;
+      font-weight:800;
+      margin-right:4px;
+    }
+    .admin-auth-login{
+      height:36px;
+      padding:0 14px;
+      border:1px solid #d9d9d9;
+      background:#fff;
+      color:#333;
+      font-weight:800;
+    }
+    .admin-auth-login.primary{
+      background:var(--blue);
+      border-color:var(--blue);
+      color:#fff;
+    }
+
+    .dashboard{
+      padding:24px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 320px;
+      gap:16px;
+      position:relative;
+    }
+    .admin-screen[data-screen="users"]{
+      grid-template-columns:minmax(0,1fr) 280px;
+    }
+    .admin-screen{
+      display:none;
+    }
+    .admin-screen.active{
+      display:grid;
+    }
+    .main-col{
+      display:grid;
+      gap:14px;
+      min-width:0;
+    }
+    .right-col{
+      display:grid;
+      gap:14px;
+      align-content:start;
+    }
+    .panel{
+      background:var(--paper);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .panel-head{
+      min-height:54px;
+      padding:0 18px;
+      border-bottom:1px solid var(--line-soft);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .panel-head h2{
+      color:#333;
+      font-size:15px;
+      font-weight:900;
+    }
+    .panel-head span{
+      color:#999;
+      font-size:13px;
+      font-weight:700;
+    }
+    .panel-body{
+      padding:18px;
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+    .summary-card{
+      min-height:120px;
+      background:#fff;
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      padding:18px;
+      display:grid;
+      gap:10px;
+      position:relative;
+    }
+    .summary-card h3{
+      color:#666;
+      font-size:13px;
+      font-weight:900;
+    }
+    .summary-card strong{
+      color:#222;
+      font-size:30px;
+      line-height:1;
+      font-weight:900;
+    }
+    .summary-card p{
+      color:#888;
+      font-size:12px;
+      font-weight:700;
+    }
+    .summary-status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:24px;
+      width:max-content;
+      padding:0 9px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      background:#eef7f1;
+      color:var(--green);
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .chart{
+      height:220px;
+      display:grid;
+      grid-template-columns:38px repeat(7,1fr);
+      grid-template-rows:1fr 24px;
+      gap:0;
+      align-items:end;
+      padding:12px 10px 0;
+    }
+    .axis{
+      grid-row:1;
+      display:grid;
+      align-content:space-between;
+      color:#aaa;
+      font-size:11px;
+      height:178px;
+    }
+    .bar-wrap{
+      grid-row:1;
+      height:178px;
+      border-left:1px solid #eee;
+      border-bottom:1px solid #eee;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      position:relative;
+    }
+    .bar{
+      width:42%;
+      background:#ffd7d2;
+      border:1px solid #f5aba2;
+      border-bottom:0;
+    }
+    .bar::after{
+      content:"";
+      display:block;
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#ef6a5b;
+      margin:-5px auto 0;
+    }
+    .x-label{
+      grid-row:2;
+      color:#999;
+      font-size:11px;
+      text-align:center;
+      padding-top:6px;
+    }
+
+    .simple-table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      font-size:13px;
+    }
+    .simple-table th,
+    .simple-table td{
+      height:42px;
+      padding:0 10px;
+      border-bottom:1px solid #eee;
+      text-align:left;
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+    }
+    .simple-table th{
+      color:#999;
+      font-size:12px;
+      font-weight:900;
+      background:#fafafa;
+    }
+    .simple-table td{
+      color:#555;
+      font-weight:700;
+    }
+    .simple-table tr.highlight td{background:#fff0ee}
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:24px;
+      padding:0 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      background:#f2f2f2;
+      color:#666;
+    }
+    .tag.blue{background:#eef2ff;color:#4268f5}
+    .tag.green{background:#e9f8ef;color:#189759}
+    .tag.yellow{background:#fff4a3;color:#6b5b00}
+    .tag.red{background:#fff0ee;color:#d93025}
+    .simple-table td.actions{
+      overflow:visible;
+      white-space:nowrap;
+      text-overflow:clip;
+    }
+    .user-table th:nth-child(1){width:20%}
+    .user-table th:nth-child(2){width:13%}
+    .user-table th:nth-child(3){width:13%}
+    .user-table th:nth-child(4){width:18%}
+    .user-table th:nth-child(5){width:36%}
+    .action-buttons{
+      display:flex;
+      align-items:center;
+      gap:5px;
+      flex-wrap:nowrap;
+      min-width:0;
+    }
+    .action-btn{
+      min-width:0;
+      height:28px;
+      border:1px solid #d8dee8;
+      background:#fff;
+      color:#364257;
+      padding:0 6px;
+      font-size:10px;
+      font-weight:900;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      line-height:1;
+      flex:0 0 auto;
+    }
+    .action-btn.detail{width:70px}
+    .action-btn.resend{width:88px}
+    .action-btn.delete{width:76px}
+    .action-icon{
+      font-size:12px;
+      line-height:1;
+    }
+    .action-icon svg{
+      width:14px;
+      height:14px;
+      stroke:currentColor;
+      fill:none;
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .action-label{
+      font-size:10px;
+      letter-spacing:0;
+      white-space:nowrap;
+    }
+    .action-btn.primary{
+      border-color:#4268f5;
+      background:#4268f5;
+      color:#fff;
+    }
+    .action-btn.danger{
+      border-color:#f0b9b5;
+      background:#fff7f6;
+      color:#d93025;
+    }
+    .action-btn.warning{
+      border-color:#efd16b;
+      background:#fff9d8;
+      color:#7a5a00;
+    }
+
+    .list{
+      display:grid;
+      gap:12px;
+      padding:2px 0;
+    }
+    .list-row{
+      display:grid;
+      grid-template-columns:40px minmax(0,1fr) auto;
+      gap:10px;
+      align-items:center;
+      min-height:46px;
+    }
+    .avatar{
+      width:38px;
+      height:38px;
+      border-radius:50%;
+      background:#e7e7e7;
+      display:grid;
+      place-items:center;
+      color:#aaa;
+      font-weight:900;
+    }
+    .list-row strong{
+      display:block;
+      color:#444;
+      font-size:13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .list-row span{
+      color:#999;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .admin-card{
+      min-height:260px;
+      background:#34373b;
+      color:#e5e5e5;
+      padding:28px 22px;
+      text-align:center;
+      position:relative;
+      box-shadow:var(--shadow);
+    }
+    .admin-avatar{
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:#ededed;
+      margin:0 auto 12px;
+      display:grid;
+      place-items:center;
+      color:#bbb;
+      font-size:34px;
+      font-weight:900;
+    }
+    .admin-card strong{
+      display:block;
+      color:#fff;
+      font-size:15px;
+      margin-bottom:3px;
+    }
+    .admin-card p{
+      color:#b8b8b8;
+      font-size:13px;
+      font-weight:700;
+    }
+    .admin-facts{
+      display:grid;
+      gap:9px;
+      margin-top:22px;
+      padding-top:18px;
+      border-top:1px solid rgba(255,255,255,.12);
+      text-align:left;
+    }
+    .admin-fact{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      color:#bdbdbd;
+      font-size:13px;
+      font-weight:700;
+    }
+    .admin-fact b{color:#fff}
+
+    .mini-card{
+      background:#fff;
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .mini-card-head{
+      height:44px;
+      padding:0 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid #eee;
+    }
+    .mini-card-head h3{
+      color:#444;
+      font-size:14px;
+      font-weight:900;
+    }
+    .mini-card-head a{
+      color:#999;
+      font-size:12px;
+      font-weight:800;
+    }
+    .memo{
+      background:#fffbc8;
+      padding:16px;
+      min-height:130px;
+    }
+    .memo textarea{
+      width:100%;
+      height:64px;
+      border:0;
+      background:transparent;
+      resize:none;
+      color:#888;
+      outline:none;
+    }
+    .memo button{
+      height:28px;
+      padding:0 12px;
+      border:1px solid #d8d8a8;
+      background:#fff;
+      color:#666;
+      border-radius:15px;
+      font-size:12px;
+      font-weight:800;
+    }
+.guide{
+      max-width:1220px;
+      margin:28px auto 60px;
+      padding:0 24px;
+    }
+    .guide h1{
+      color:#111;
+      font-size:28px;
+      margin-bottom:10px;
+    }
+    .guide p{
+      color:#666;
+      font-size:16px;
+      font-weight:700;
+      margin-bottom:18px;
+    }
+    .guide-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+    .guide-item{
+      background:#fff;
+      border:1px solid #ddd;
+      padding:18px;
+      display:grid;
+      grid-template-columns:38px 1fr;
+      gap:14px;
+      align-items:start;
+      box-shadow:var(--shadow);
+    }
+    .guide-no{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      background:var(--orange);
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+    }
+    .guide-item h2{
+      color:#222;
+      font-size:17px;
+      margin-bottom:5px;
+    }
+    .guide-item p{
+      color:#666;
+      font-size:14px;
+      font-weight:650;
+      margin:0;
+    }
+    .page-plan{
+      margin-top:16px;
+      background:#fff;
+      border:1px solid #ddd;
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+    .page-plan h2{
+      color:#222;
+      font-size:18px;
+      margin-bottom:12px;
+    }
+    .plan-table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      font-size:14px;
+    }
+    .plan-table th,
+    .plan-table td{
+      border:1px solid #ddd;
+      padding:12px;
+      text-align:left;
+      vertical-align:top;
+    }
+    .plan-table th{
+      background:#f2f2f2;
+      color:#333;
+      font-weight:900;
+    }
+    .plan-table td strong{
+      color:#222;
+    }
+
+    @media (max-width:1180px){
+      .admin-frame{grid-template-columns:1fr}
+      .sidebar{min-height:auto}
+      .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .sidebar-foot{display:none}
+      .dashboard{grid-template-columns:1fr}
+      .right-col{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .admin-card{min-height:220px}
+      .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .guide-grid{grid-template-columns:1fr}
+    }
+    @media (max-width:760px){
+      .topbar{height:auto;min-height:72px;display:grid;gap:8px;padding:14px 18px}
+      .dashboard{padding:14px}
+      .two-col,.summary-grid,.right-col{grid-template-columns:1fr}
+      .nav{grid-template-columns:1fr}
+      .panel-body{padding:14px}
+      .guide{padding:0 14px}
+      .guide-item{grid-template-columns:1fr}
+      .plan-table{font-size:13px}
+      .plan-table th:nth-child(3),
+      .plan-table td:nth-child(3){display:none}
+    }
+  </style>
+</head>
+<body>
+<div class="admin-frame">
+    <aside class="sidebar">
+      <div class="site-head">
+        <div class="logo">JB</div>
+        <div class="site-title">
+          <strong>JobBridge</strong>
+          <span>관리자 페이지</span>
+        </div>
+        <button class="sidebar-toggle" type="button" aria-label="왼쪽 메뉴 접기" title="왼쪽 메뉴 접기">‹</button>
+      </div>
+
+      <nav class="nav" aria-label="관리 메뉴">
+        <a class="nav-item active" href="#dashboard" data-target="dashboard" title="대시보드"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-5"></path><path d="M12 16V8"></path><path d="M16 16v-3"></path></svg></span><span class="nav-label">대시보드</span></a>
+        <a class="nav-item" href="#users" data-target="users" title="회원 관리"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 19c0-2.2-1.8-4-4-4H8c-2.2 0-4 1.8-4 4"></path><circle cx="10" cy="8" r="3"></circle><path d="M20 19c0-1.8-1.2-3.2-3-3.8"></path><path d="M16 5.3a3 3 0 0 1 0 5.4"></path></svg></span><span class="nav-label">회원 관리</span></a>
+        <a class="nav-item" href="#profiles" data-target="profiles" title="프로필/동의"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M6.5 16c.6-1.5 1.5-2.3 2.5-2.3s1.9.8 2.5 2.3"></path><path d="M14 10h4"></path><path d="M14 14h3"></path></svg></span><span class="nav-label">프로필/동의</span></a>
+        <a class="nav-item" href="#jobs" data-target="jobs" title="공고 관리"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="2"></rect><path d="M9 7V5h6v2"></path><path d="M4 12h16"></path><path d="M10 12v2h4v-2"></path></svg></span><span class="nav-label">공고 관리</span></a>
+        <a class="nav-item" href="#recommend" data-target="recommend" title="추천/모델"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.7 4.5L18 9.2l-4.3 1.7L12 16l-1.7-5.1L6 9.2l4.3-1.7L12 3z"></path><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"></path></svg></span><span class="nav-label">추천/모델</span></a>
+        <a class="nav-item" href="#logs" data-target="logs" title="로그/감사"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l2 2v14H5V4h2z"></path><path d="M8 9h8"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg></span><span class="nav-label">로그/감사</span></a>
+        <a class="nav-item" href="#settings" data-target="settings" title="환경설정"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a7 7 0 0 0-1.8-1L14.4 3h-4.8l-.3 3.1a7 7 0 0 0-1.8 1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 1.8 1l.3 3.1h4.8l.3-3.1a7 7 0 0 0 1.8-1l2.4 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"></path></svg></span><span class="nav-label">환경설정</span></a>
+      </nav>
+
+      <div class="sidebar-foot">◎ 한국어</div>
+    </aside>
+
+    <section class="content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <strong class="topbar-title" id="adminPageTitle">잡브릿지 관리자</strong>
+          <a class="preview-link" href="./JobBridge.dc.html">사용자 화면 미리보기</a>
+        </div>
+        <div class="admin-auth-actions" aria-label="관리자 인증">
+          <span id="adminAuthState" class="admin-auth-state">관리자 로그인 필요</span>
+          <button id="adminGoogleLoginButton" class="admin-auth-login primary" type="button">Google 로그인</button>
+          <button id="adminKakaoLoginButton" class="admin-auth-login" type="button">Kakao 로그인</button>
+          <button id="adminLogoutButton" class="logout" type="button" hidden>로그아웃</button>
+        </div>
+      </header>
+
+      <div class="dashboard admin-screen active" data-screen="dashboard">
+        <div class="main-col">
+          <section class="summary-grid" aria-label="핵심 지표">
+            <article class="summary-card">
+              <h3>전체 회원</h3>
+              <strong id="dashboardUserCount">-</strong>
+              <p id="dashboardUserHint">Google, Kakao, Email 포함</p>
+            </article>
+            <article class="summary-card">
+              <h3>활성 공고</h3>
+              <strong id="activeJobs">-</strong>
+              <p id="activeJobsHint">KEAD live snapshot 기준</p>
+            </article>
+            <article class="summary-card">
+              <h3>추천 모델</h3>
+              <strong id="dashboardModelState">확인 중</strong>
+              <span id="dashboardModelBadge" class="summary-status">확인 중</span>
+            </article>
+            <article class="summary-card">
+              <h3>최근 동기화</h3>
+              <strong id="lastSync">-</strong>
+              <p id="lastSeen">최근 동기화 기준</p>
+            </article>
+          </section>
+
+          <div class="two-col">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>방문자/사용 현황</h2>
+                <span>향후 GA 또는 Supabase 로그 연결</span>
+              </div>
+              <div class="panel-body">
+                <div id="visitorUsageStatus" class="empty-state">방문자/사용량 수집 상태를 확인하는 중입니다.</div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>일자별 요약</h2>
+                <span>오늘 기준</span>
+              </div>
+              <div class="panel-body" style="padding:0">
+                <table class="simple-table">
+                  <thead>
+                    <tr>
+                      <th>일자</th>
+                      <th>가입</th>
+                      <th>추천 실행</th>
+                      <th>공고 클릭</th>
+                      <th>오류</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dailySummaryBody"><tr><td colspan="5">운영 데이터를 불러오는 중입니다.</td></tr></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <div class="two-col">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>최근 회원</h2>
+                <span>더보기</span>
+              </div>
+              <div class="panel-body">
+                <div id="dashboardRecentUsers" class="list">
+                  <div class="list-row">
+                    <div class="avatar">-</div>
+                    <div><strong>회원 데이터 로딩 중</strong><span>Supabase Auth 사용자 목록을 불러오고 있습니다.</span></div>
+                    <span class="tag">대기</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h2>운영 알림</h2>
+                <span>처리 필요</span>
+              </div>
+              <div class="panel-body">
+                <div id="operationalAlerts" class="list">
+                  <div class="list-row"><div class="avatar">-</div><div><strong>상태 확인 중</strong><span>운영 데이터를 불러오고 있습니다.</span></div><span class="tag">대기</span></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>공고 운영 현황</h2>
+              <span>KEAD 실시간 공고</span>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table class="simple-table">
+                <thead>
+                  <tr>
+                    <th>공고</th>
+                    <th>지역</th>
+                    <th>직무 매핑</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardJobsTableBody"><tr><td colspan="5">공고 데이터를 불러오는 중입니다.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <aside class="right-col">
+          <section class="admin-card">
+            <div class="admin-avatar">●</div>
+            <strong>관리자</strong>
+            <p>관리자 계정으로 로그인하세요.</p>
+            <div class="admin-facts">
+              <div class="admin-fact"><span>권한</span><b>슈퍼관리자</b></div>
+              <div class="admin-fact"><span>인증</span><b>Supabase 세션</b></div>
+              <div class="admin-fact"><span>운영 모드</span><b>production</b></div>
+            </div>
+          </section>
+
+          <section class="mini-card memo">
+            <strong>운영자 메모</strong>
+            <textarea placeholder="테스트 계정, 동기화 이슈, 확인할 운영 메모를 남겨주세요."></textarea>
+            <button>메모</button>
+          </section>
+        </aside>
+      </div>
+
+      <div class="dashboard admin-screen" data-screen="users">
+        <div class="main-col">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>회원 관리</h2>
+              <span>이메일 / Google / Kakao 통합 관리</span>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+                <select id="authProviderFilter" style="height:38px;border:1px solid #ddd;padding:0 12px;background:#fff"><option value="all">전체 가입 방식</option><option value="kakao">Kakao</option><option value="google">Google</option><option value="email">Email</option></select>
+                <input id="authUserSearch" style="height:38px;min-width:300px;border:1px solid #ddd;padding:0 12px" placeholder="이메일, 닉네임, 사용자 ID 검색">
+                <button id="authUsersRefreshButton" style="height:38px;border:0;background:#4268f5;color:#fff;padding:0 16px;font-weight:800" type="button">검색</button>
+              </div>
+              <table class="simple-table user-table">
+                <thead><tr><th>사용자</th><th>가입 방식</th><th>프로필 상태</th><th>최근 로그인</th><th>관리</th></tr></thead>
+                <tbody id="authUsersTableBody">
+                  <tr><td colspan="5">사용자 데이터를 불러오는 중입니다.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>회원 상세에서 보여줄 항목</h2>
+              <span>클릭 시 상세 페이지</span>
+            </div>
+            <div class="panel-body">
+              <div class="two-col">
+                <div class="summary-card"><h3>Auth 정보</h3><p>provider, identities, email 확인, last_sign_in_at, banned_until</p></div>
+                <div class="summary-card"><h3>JobBridge 정보</h3><p>public.profiles, 프로필 입력 여부, 추천 이력, 관심 공고</p></div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <aside class="right-col">
+          <section class="mini-card">
+            <div class="mini-card-head"><h3>회원 관리 작업</h3><a id="authUsersStatus">권한 필요</a></div>
+            <div class="panel-body">
+              <div class="list">
+                <div class="list-row"><div class="avatar">1</div><div><strong>조회</strong><span>모든 관리자 가능</span></div><span class="tag green">허용</span></div>
+                <div class="list-row"><div class="avatar">2</div><div><strong>삭제</strong><span>슈퍼관리자만 가능</span></div><span class="tag red">주의</span></div>
+                <div class="list-row"><div class="avatar">3</div><div><strong>활동 기록</strong><span>삭제/수정은 반드시 기록</span></div><span class="tag blue">필수</span></div>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <div class="dashboard admin-screen" data-screen="profiles">
+        <div class="main-col">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>프로필/동의 관리</h2>
+              <span>민감정보 동의와 추천 프로필 상태</span>
+            </div>
+            <div class="panel-body">
+              <table class="simple-table">
+                <thead><tr><th>사용자</th><th>기본 프로필</th><th>역량 프로필</th><th>민감정보 동의</th><th>관리</th></tr></thead>
+                <tbody id="profilesTableBody"><tr><td colspan="5">회원 프로필 데이터를 불러오는 중입니다.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><h2>관리자가 확인할 내용</h2><span>추천 품질과 개인정보 보호</span></div>
+            <div class="panel-body">
+              <div class="summary-grid">
+                <article class="summary-card"><h3>기본 프로필</h3><p>장애유형, 중증여부, 지역, 희망직종, 희망임금</p></article>
+                <article class="summary-card"><h3>역량 프로필</h3><p>학력, 경력, 자격증, 보유 기술, 근무조건</p></article>
+                <article class="summary-card"><h3>동의 이력</h3><p>동의 버전, 동의 시각, 철회 여부</p></article>
+                <article class="summary-card"><h3>삭제 요청</h3><p>프로필/추천 이력 삭제 처리 큐</p></article>
+              </div>
+            </div>
+          </section>
+        </div>
+        <aside class="right-col">
+          <section class="mini-card memo"><strong>주의</strong><textarea readonly>민감정보는 관리자 화면에서도 최소한으로 보여주고, 상세 조회는 감사 로그를 남깁니다.</textarea></section>
+        </aside>
+      </div>
+
+      <div class="dashboard admin-screen" data-screen="jobs">
+        <div class="main-col">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>공고 관리</h2>
+              <button id="syncButton" style="height:34px;border:0;background:#222;color:#fff;padding:0 14px;font-weight:800" type="button">KEAD 공고 동기화</button>
+            </div>
+            <div class="panel-body">
+              <div class="summary-grid" style="margin-bottom:14px">
+                <article class="summary-card"><h3>활성 공고</h3><strong id="jobsActiveCount">-</strong><p>현재 추천에 사용</p></article>
+                <article class="summary-card"><h3>만료 제외</h3><strong id="jobsExpiredCount">-</strong><p>최근 동기화 기준</p></article>
+                <article class="summary-card"><h3>매핑 검수</h3><strong id="jobsMappingReviewCount">-</strong><p>직무 분류 확인 필요</p></article>
+                <article class="summary-card"><h3>데이터 소스</h3><strong id="jobsDataSource">-</strong><p>job_list_env / job_list</p></article>
+              </div>
+              <table class="simple-table">
+                <thead><tr><th>공고명</th><th>회사</th><th>지역</th><th>직무 매핑</th><th>상태</th></tr></thead>
+                <tbody id="jobsTableBody"><tr><td colspan="5">공고 데이터를 불러오는 중입니다.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <aside class="right-col">
+          <section class="mini-card">
+            <div class="mini-card-head"><h3>동기화 기록</h3><a>전체</a></div>
+            <div id="syncHistoryList" class="panel-body list">
+              <div class="list-row"><div class="avatar">-</div><div><strong>동기화 기록 대기</strong><span>공고 동기화를 실행하면 현재 세션 기록이 표시됩니다.</span></div><span class="tag">대기</span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <div class="dashboard admin-screen" data-screen="recommend">
+        <div class="main-col">
+          <section class="panel">
+            <div class="panel-head"><h2>추천/모델 관리</h2><span>추천 모델, 공고 정렬, NCS 역량 연결 상태</span></div>
+            <div class="panel-body">
+              <div class="summary-grid" style="margin-bottom:14px">
+                <article class="summary-card"><h3>프로필 모델</h3><strong id="profileModelState">-</strong><p id="profileModelVersion">추천 모델 준비 완료</p></article>
+                <article class="summary-card"><h3>공고 랭커</h3><strong id="postingRankerState">-</strong><p id="postingRankerVersion">공고 정렬 모델 준비 완료</p></article>
+                <article class="summary-card"><h3>역량 마스터 DB</h3><strong id="capabilityCatalogState">-</strong><p id="capabilityCatalogDetail">역량 기준 확인 중</p></article>
+                <article class="summary-card"><h3>오늘 추천 실행</h3><strong id="todayRecommendationCount">-</strong><p>수집 상태</p></article>
+                <article class="summary-card"><h3>오류</h3><strong id="recommendationErrorCount">-</strong><p>API 실패 없음</p></article>
+              </div>
+              <table class="simple-table">
+                <thead><tr><th>시간</th><th>사용자</th><th>1순위 추천</th><th>응답 시간</th><th>상태</th></tr></thead>
+                <tbody id="recommendationTableBody"><tr><td colspan="5">추천 로그 데이터를 확인하는 중입니다.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <aside class="right-col">
+          <section class="mini-card">
+            <div class="mini-card-head"><h3>운영 체크</h3><a>상세</a></div>
+            <div class="panel-body list">
+              <div class="list-row"><div class="avatar">M</div><div><strong>모델 버전</strong><span>추천 모델, 공고 랭커, NCS 역량 연결 버전 표시</span></div><span class="tag blue">필수</span></div>
+              <div class="list-row"><div class="avatar">N</div><div><strong>NCS 검수 상태</strong><span>검수 전에는 예상 준비 항목으로 표시</span></div><span class="tag yellow">중요</span></div>
+              <div class="list-row"><div class="avatar">대</div><div><strong>대체 추천</strong><span>발생하면 원인 확인</span></div><span class="tag yellow">감시</span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <div class="dashboard admin-screen" data-screen="logs">
+        <div class="main-col">
+          <section class="panel">
+            <div class="panel-head"><h2>로그/감사</h2><span>관리자 행동과 인증 이벤트</span></div>
+            <div class="panel-body">
+              <table class="simple-table">
+                <thead><tr><th>시간</th><th>관리자</th><th>작업</th><th>대상</th><th>결과</th></tr></thead>
+                <tbody id="logsTableBody"><tr><td colspan="5">관리자 세션 로그가 여기에 표시됩니다.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <aside class="right-col"><section class="mini-card memo"><strong>원칙</strong><textarea readonly>사용자 삭제, 설정 변경, 공고 동기화는 누가 실행했는지 반드시 남깁니다.</textarea></section></aside>
+      </div>
+
+      <div class="dashboard admin-screen" data-screen="settings">
+        <div class="main-col">
+          <section class="panel">
+            <div class="panel-head"><h2>환경설정</h2><span>비밀값은 보여주지 않고 상태만 표시</span></div>
+            <div class="panel-body">
+              <table class="simple-table">
+                <thead><tr><th>항목</th><th>상태</th><th>설명</th><th>관리 위치</th><th>주의</th></tr></thead>
+                <tbody>
+                  <tr><td>SUPABASE_URL</td><td><span id="supabaseUrlStatus" class="tag green">확인 중</span></td><td>프로젝트 URL</td><td>Vercel Env</td><td>공개 가능</td></tr>
+                  <tr><td>SUPABASE_SERVICE_ROLE_KEY</td><td><span id="serviceRoleStatus" class="tag green">서버 전용</span></td><td>관리 API용</td><td>Vercel Env</td><td>노출 금지</td></tr>
+                  <tr><td>CAPABILITY_CATALOG_SOURCE</td><td><span id="capabilityCatalogSourceStatus" class="tag">확인 중</span></td><td>도전추천 역량 마스터</td><td>Supabase / 로컬 fallback</td><td>운영 필수</td></tr>
+                  <tr><td>OAuth Provider</td><td><span class="tag green">Google/Kakao</span></td><td>소셜 로그인</td><td>Supabase Auth</td><td>redirect 확인</td></tr>
+                  <tr><td>관리자 allowlist</td><td><span class="tag green">설정됨</span></td><td>관리자 접근 제한</td><td>Vercel Env</td><td>필수</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <aside class="right-col">
+          <section class="admin-card">
+            <div class="admin-avatar">⚙</div>
+            <strong>보안 설정</strong>
+            <p>service role key는 브라우저 코드에 넣지 않습니다.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <script>
+
+    const $ = (id) => document.getElementById(id);
+    const adminPages = {
+      dashboard: '잡브릿지 관리자',
+      users: '회원 관리',
+      profiles: '프로필/동의 관리',
+      jobs: '공고 관리',
+      recommend: '추천/모델 관리',
+      logs: '로그/감사',
+      settings: '환경설정'
+    };
+    let adminSupabaseClient = null;
+    let adminAccessToken = '';
+    let latestStatusData = null;
+    let latestLiveJobs = [];
+    let latestAuthUsers = [];
+    let adminEvents = [];
+    let adminSessionUser = null;
+
+    function currentPageKey(){
+      const key = (location.hash || '#dashboard').replace('#','');
+      return adminPages[key] ? key : 'dashboard';
+    }
+
+    function showAdminPage(key){
+      const pageKey = adminPages[key] ? key : 'dashboard';
+      document.querySelectorAll('[data-target]').forEach(item => item.classList.toggle('active', item.dataset.target === pageKey));
+      document.querySelectorAll('[data-screen]').forEach(screen => screen.classList.toggle('active', screen.dataset.screen === pageKey));
+      setText('adminPageTitle', adminPages[pageKey]);
+    }
+
+    function updateAdminAuthUi(session) {
+      const user = session && session.user ? session.user : adminSessionUser;
+      const loggedIn = !!user;
+      const email = user && user.email ? user.email : '';
+      setText('adminAuthState', loggedIn ? (email ? email + ' 인증됨' : '관리자 인증됨') : '관리자 로그인 필요');
+      const googleButton = $('adminGoogleLoginButton');
+      const kakaoButton = $('adminKakaoLoginButton');
+      const logoutButton = $('adminLogoutButton');
+      if (googleButton) googleButton.hidden = loggedIn;
+      if (kakaoButton) kakaoButton.hidden = loggedIn;
+      if (logoutButton) logoutButton.hidden = !loggedIn;
+    }
+
+    function adminOAuthCallbackParams() {
+      const pairs = new URLSearchParams(window.location.search || '');
+      const hashText = String(window.location.hash || '').replace(/^#/, '');
+      if (hashText) {
+        const hashParams = new URLSearchParams(hashText);
+        hashParams.forEach((value, key) => {
+          if (!pairs.has(key)) pairs.set(key, value);
+        });
+      }
+      return {
+        code: pairs.get('code') || '',
+        error: pairs.get('error') || pairs.get('error_code') || '',
+        errorDescription: pairs.get('error_description') || pairs.get('error_msg') || pairs.get('message') || '',
+        hasAuthParams: pairs.has('code') || pairs.has('access_token') || pairs.has('refresh_token') || pairs.has('error') || pairs.has('error_code'),
+      };
+    }
+
+    function cleanAdminOAuthCallbackUrl() {
+      if (!window.history || !window.location) return;
+      const url = new URL(window.location.href);
+      ['code','error','error_code','error_description','error_msg','message'].forEach(key => url.searchParams.delete(key));
+      window.history.replaceState({}, document.title, url.toString());
+    }
+
+    function adminRedirectTo() {
+      if (location.protocol === 'file:') return 'http://127.0.0.1:8787/JobBridge.admin.html' + (location.hash || '');
+      const url = new URL(window.location.href);
+      ['code','error','error_code','error_description','error_msg','message'].forEach(key => url.searchParams.delete(key));
+      return url.toString();
+    }
+
+    async function startAdminOAuthLogin(provider) {
+      const client = await adminSupabase();
+      if (!client) {
+        alert('Supabase 인증 설정을 불러오지 못했습니다.');
+        return;
+      }
+      const options = { redirectTo: adminRedirectTo() };
+      if (provider === 'google') options.queryParams = { prompt:'select_account' };
+      if (provider === 'kakao') options.queryParams = { scope:'profile_nickname profile_image' };
+      const result = await client.auth.signInWithOAuth({ provider, options });
+      if (result.error) alert(result.error.message || '관리자 로그인을 시작하지 못했습니다.');
+    }
+
+    async function initAdminAuth() {
+      const client = await adminSupabase();
+      if (!client) {
+        updateAdminAuthUi(null);
+        return;
+      }
+      try {
+        await loadAdminAccessToken();
+      } catch (error) {
+        setText('adminAuthState', '관리자 로그인 실패');
+        console.warn('[JobBridge Admin] auth callback failed', error);
+      }
+      client.auth.onAuthStateChange((_event, session) => {
+        adminAccessToken = session && session.access_token ? session.access_token : '';
+        adminSessionUser = session && session.user ? session.user : null;
+        updateAdminAuthUi(session);
+      });
+      updateAdminAuthUi(adminSessionUser ? { user: adminSessionUser } : null);
+    }
+
+    function isLocalHost() {
+      return location.protocol === 'file:' || ['localhost', '127.0.0.1', '::1', '[::1]'].includes(location.hostname);
+    }
+
+    function apiCandidates(path) {
+      const candidates = [];
+      if (location.protocol !== 'file:') {
+        const mappedPath = vercelApiPath(path);
+        candidates.push(location.origin + mappedPath);
+        if (mappedPath === path) candidates.push(location.origin + path);
+      }
+      if (isLocalHost()) {
+        candidates.push('http://127.0.0.1:8787' + vercelApiPath(path));
+        candidates.push('http://127.0.0.1:8787' + path);
+      }
+      return [...new Set(candidates)];
+    }
+
+    function vercelApiPath(path) {
+      const [route, query = ''] = path.split('?');
+      const suffix = query ? '?' + query : '';
+      if (route === '/v1/auth-config') return '/api/auth-config' + suffix;
+      if (route === '/v1/admin/auth-users') return '/api/admin/auth-users' + suffix;
+      if (route === '/v1/admin/auth-users/delete') return '/api/admin/auth-users-delete' + suffix;
+      if (route === '/v1/admin/sync-live-jobs') return '/api/admin/sync-live-jobs' + suffix;
+      return path;
+    }
+
+    async function requestJson(path, options = {}) {
+      const separator = path.includes('?') ? '&' : '?';
+      const cachePath = path + separator + 'ts=' + Date.now();
+      let lastError;
+      const authHeaders = await adminRequestHeaders(path);
+      for (const url of apiCandidates(cachePath)) {
+        try {
+          const response = await fetch(url, {
+            cache: 'no-store',
+            ...options,
+            headers: { 'content-type': 'application/json', ...authHeaders, ...(options.headers || {}) }
+          });
+          const text = await response.text();
+          let body = {};
+          try { body = text ? JSON.parse(text) : {}; } catch { body = { message: text }; }
+          if (!response.ok) {
+            body.httpStatus = response.status;
+            const error = new Error(body.message || body.error || 'HTTP ' + response.status);
+            error.body = body;
+            throw error;
+          }
+          return body;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error('API request failed');
+    }
+
+    function isAdminApiPath(path) {
+      const route = String(path || '').split('?')[0];
+      return route.includes('/admin/');
+    }
+
+    async function adminRequestHeaders(path) {
+      const headers = {};
+      const accessToken = await loadAdminAccessToken();
+      if (accessToken) headers.Authorization = 'Bearer ' + accessToken;
+      if (!accessToken && isAdminApiPath(path)) {
+        const error = new Error('관리자 로그인이 필요합니다. 우측 상단의 Google/Kakao 로그인으로 먼저 로그인해 주세요.');
+        error.body = { httpStatus:401, message:error.message, requiresLogin:true };
+        throw error;
+      }
+      return headers;
+    }
+
+    async function loadAdminAccessToken() {
+      if (adminAccessToken) return adminAccessToken;
+      const client = await adminSupabase();
+      if (!client) return '';
+      const callback = adminOAuthCallbackParams();
+      if (callback.error) {
+        cleanAdminOAuthCallbackUrl();
+        throw new Error(callback.errorDescription || callback.error || '관리자 로그인 콜백 처리에 실패했습니다.');
+      }
+      const result = await client.auth.getSession();
+      let session = result && result.data ? result.data.session : null;
+      if (!session && callback.code && typeof client.auth.exchangeCodeForSession === 'function') {
+        const exchangeResult = await client.auth.exchangeCodeForSession(callback.code);
+        if (exchangeResult.error) throw exchangeResult.error;
+        session = exchangeResult.data && exchangeResult.data.session ? exchangeResult.data.session : null;
+      }
+      if (session && callback.hasAuthParams) cleanAdminOAuthCallbackUrl();
+      adminAccessToken = session && session.access_token ? session.access_token : '';
+      adminSessionUser = session && session.user ? session.user : null;
+      updateAdminAuthUi(session);
+      return adminAccessToken;
+    }
+
+    async function adminSupabase() {
+      if (adminSupabaseClient) return adminSupabaseClient;
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+      const config = await loadSupabaseConfig();
+      if (!config.supabaseUrl || !config.supabaseAnonKey) return null;
+      adminSupabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+        auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false, flowType: 'pkce' }
+      });
+      return adminSupabaseClient;
+    }
+
+    async function loadSupabaseConfig() {
+      for (const url of apiCandidates('/v1/auth-config')) {
+        try {
+          const response = await fetch(url, { cache: 'no-store' });
+          const body = await response.json().catch(() => ({}));
+          if (body.supabaseUrl && body.supabaseAnonKey) return body;
+        } catch {}
+      }
+      return {};
+    }
+
+    async function loadDashboard() {
+      let status = null;
+      let liveJobs = null;
+      try {
+        status = await requestJson('/v1/admin/status');
+        pushAdminLog('상태 조회', '관리 API', '성공');
+      } catch (error) {
+        pushAdminLog('상태 조회', '관리 API', '실패');
+      }
+      try {
+        liveJobs = await requestJson('/v1/live-jobs?limit=500');
+        pushAdminLog('공고 조회', 'live-jobs', '성공');
+      } catch (error) {
+        pushAdminLog('공고 조회', 'live-jobs', '실패');
+      }
+      if (status) {
+        renderStatus(status, liveJobs);
+      } else if (liveJobs) {
+        renderStatus(buildFallbackStatus({}, liveJobs), liveJobs);
+      } else {
+        renderApiUnavailable();
+      }
+      await loadAuthUsers();
+    }
+
+    async function syncLiveJobs() {
+      const button = $('syncButton');
+      if (button) button.textContent = '동기화 중...';
+      try {
+        await requestJson('/v1/admin/sync-live-jobs', { method: 'POST', body: JSON.stringify({ timeoutSeconds: 300 }) });
+        pushAdminLog('공고 동기화', 'KEAD', '성공');
+        await loadDashboard();
+      } catch (error) {
+        pushAdminLog('공고 동기화', 'KEAD', '실패');
+        alert((error.body && error.body.message) || error.message || '동기화에 실패했습니다.');
+      } finally {
+        if (button) button.textContent = 'KEAD 공고 동기화';
+        renderSyncHistory();
+      }
+    }
+
+    async function loadAuthUsers() {
+      setText('authUsersStatus', '불러오는 중');
+      const provider = $('authProviderFilter') ? $('authProviderFilter').value : 'all';
+      const q = $('authUserSearch') ? $('authUserSearch').value.trim() : '';
+      try {
+        const payload = await requestJson('/v1/admin/auth-users?provider=' + encodeURIComponent(provider) + '&q=' + encodeURIComponent(q) + '&perPage=1000');
+        renderAuthUsers(payload);
+        pushAdminLog('회원 조회', 'Supabase Auth', '성공');
+      } catch (error) {
+        setText('authUsersStatus', '권한 필요');
+        const body = error.body || {};
+        const message = body.message || error.message || '사용자 목록을 불러오지 못했습니다.';
+        setTableMessage('authUsersTableBody', 5, message);
+        setTableMessage('profilesTableBody', 5, '회원 목록을 불러오면 프로필/동의 상태가 표시됩니다.');
+        setText('dashboardUserCount', '확인 필요');
+        setText('dashboardUserHint', '관리자 권한 또는 서버 환경변수 확인 필요');
+        renderRecentUsers([]);
+        renderDailySummary([]);
+        pushAdminLog('회원 조회', 'Supabase Auth', '실패');
+      }
+    }
+
+    function renderAuthUsers(payload) {
+      const users = Array.isArray(payload.users) ? payload.users : [];
+      latestAuthUsers = users;
+      setText('dashboardUserCount', formatNumber(payload.total ?? users.length) + '명');
+      setText('dashboardUserHint', 'Email ' + formatNumber(payload.providerCounts?.email || 0) + ' / Google ' + formatNumber(payload.providerCounts?.google || 0) + ' / Kakao ' + formatNumber(payload.providerCounts?.kakao || 0));
+      setText('authUsersStatus', '조회 완료');
+      renderRecentUsers(users);
+      renderUserTable(users);
+      renderProfileTable(users, payload.profileStatus);
+      renderDailySummary(users);
+      renderOperationalAlerts();
+    }
+
+    function renderRecentUsers(users) {
+      const recent = $('dashboardRecentUsers');
+      if (!recent) return;
+      recent.innerHTML = users.slice(0, 3).map(renderRecentUser).join('') || '<div class="list-row"><div class="avatar">-</div><div><strong>최근 회원 없음</strong><span>Supabase Auth 사용자 목록에 표시할 회원이 없습니다.</span></div><span class="tag">없음</span></div>';
+    }
+
+    function renderRecentUser(user) {
+      const provider = primaryProvider(user);
+      return '<div class="list-row"><div class="avatar">' + providerInitial(provider, user.displayName || user.email || user.id) + '</div><div><strong>' + escapeHtml(user.displayName || user.email || '사용자') + '</strong><span>' + providerLabel(provider) + ' · ' + escapeHtml(user.email || '이메일 없음') + '</span></div><span class="tag ' + tagClass(provider) + '">' + providerLabel(provider) + '</span></div>';
+    }
+
+    function renderUserTable(users) {
+      const tbody = $('authUsersTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = users.map(renderUserRow).join('') || '<tr><td colspan="5">조건에 맞는 사용자가 없습니다.</td></tr>';
+    }
+
+    function renderUserRow(user) {
+      const provider = primaryProvider(user);
+      const profileState = user.profile ? '프로필 연결' : user.confirmedAt ? '인증 완료' : '인증 대기';
+      const profileClass = user.profile ? 'green' : user.confirmedAt ? 'yellow' : '';
+      const resend = provider === 'email' && !user.confirmedAt ? '<button class="action-btn warning resend" type="button" title="이메일 재발송"><span class="action-icon">' + actionIcon('mail') + '</span><span class="action-label">이메일 재발송</span></button>' : '';
+      return '<tr><td>' + escapeHtml(user.displayName || user.email || user.id || '사용자') + '</td><td><span class="tag ' + tagClass(provider) + '">' + providerLabel(provider) + '</span></td><td><span class="tag ' + profileClass + '">' + profileState + '</span></td><td>' + (user.lastSignInAt ? formatDateTime(user.lastSignInAt) : '-') + '</td><td class="actions"><div class="action-buttons"><button class="action-btn primary detail" type="button" title="상세 보기"><span class="action-icon">' + actionIcon('search') + '</span><span class="action-label">상세 보기</span></button>' + resend + '<button class="action-btn danger delete" type="button" title="회원 삭제" data-auth-delete="' + escapeHtml(user.id || '') + '" data-auth-label="' + escapeHtml(user.email || user.displayName || user.id || '사용자') + '"><span class="action-icon">' + actionIcon('trash') + '</span><span class="action-label">회원 삭제</span></button></div></td></tr>';
+    }
+
+    function renderProfileTable(users, profileStatus) {
+      const tbody = $('profilesTableBody');
+      if (!tbody) return;
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="5">회원 데이터가 없어 프로필/동의 상태를 표시할 수 없습니다.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = users.map((user) => {
+        const hasProfile = !!user.profile;
+        const provider = primaryProvider(user);
+        const consentLabel = provider === 'kakao' || provider === 'google' ? 'OAuth 동의' : user.confirmedAt ? '이메일 인증' : '확인 필요';
+        return '<tr><td>' + escapeHtml(user.displayName || user.email || user.id) + '</td><td><span class="tag ' + (hasProfile ? 'green' : 'red') + '">' + (hasProfile ? '연결됨' : '미입력') + '</span></td><td>' + (hasProfile ? '저장됨' : '0개') + '</td><td><span class="tag ' + (user.confirmedAt || provider !== 'email' ? 'green' : '') + '">' + consentLabel + '</span></td><td>상세</td></tr>';
+      }).join('');
+      if (profileStatus && profileStatus.ok === false) {
+        tbody.insertAdjacentHTML('beforeend', '<tr><td colspan="5">profiles 연결 상태: ' + escapeHtml(profileStatus.message || '확인 필요') + '</td></tr>');
+      }
+    }
+
+    async function deleteAuthUser(userId, label) {
+      if (!userId) return;
+      if (!confirm((label || userId) + ' 계정을 삭제할까요?')) return;
+      await requestJson('/v1/admin/auth-users/delete', { method: 'POST', body: JSON.stringify({ userId }) });
+      pushAdminLog('회원 삭제', label || userId, '성공');
+      await loadAuthUsers();
+    }
+
+    function renderStatus(data, liveJobsPayload) {
+      latestStatusData = data || {};
+      const service = data.service || {};
+      const live = data.liveJobs || {};
+      const runtime = data.runtime || live.runtime || {};
+      const snapshot = data.snapshot || live.snapshot || {};
+      const rec = data.recommendation || {};
+      const logging = data.logging || rec.recommendationLogging || {};
+      const capability = data.capabilityCatalog || rec.capabilityCatalog || {};
+      const visitors = data.visitors || {};
+      latestLiveJobs = extractJobs(liveJobsPayload);
+      const activeRows = runtime.activePostingRows ?? snapshot.activeRows ?? liveJobsPayload?.diagnostics?.postingRows ?? latestLiveJobs.length;
+      const modelOk = !!(rec.postingRankerAvailable && service.modelLoaded);
+      setText('activeJobs', formatNumber(activeRows));
+      setText('activeJobsHint', sourceLabel(runtime.source || liveJobsPayload?.source || service.postingSource));
+      setText('jobsActiveCount', formatNumber(activeRows));
+      setText('jobsExpiredCount', formatNumber(snapshot.expiredRowsAsOfToday || snapshot.excludedExpiredRows || 0));
+      setText('jobsMappingReviewCount', formatNumber(snapshot.unmappedRows ?? countUnmappedJobs(latestLiveJobs)));
+      setText('jobsDataSource', sourceLabel(runtime.source || liveJobsPayload?.source || service.postingSource));
+      setText('lastSync', formatTime(snapshot.latestFetchedAt || liveJobsPayload?.generatedAt || data.generatedAt));
+      setText('lastSeen', formatDate(snapshot.latestLastSeenAt || liveJobsPayload?.generatedAt || data.generatedAt) + ' 기준');
+      setText('dashboardModelState', modelOk ? '정상' : '확인 필요');
+      setText('dashboardModelBadge', modelOk ? '사용 가능' : '점검 필요');
+      setText('profileModelState', service.modelLoaded ? '사용 가능' : '확인 필요');
+      setText('profileModelVersion', rec.profileModelVersion || service.modelVersion || '프로필 추천 모델');
+      setText('postingRankerState', rec.postingRankerAvailable ? '사용 가능' : '확인 필요');
+      setText('postingRankerVersion', rec.postingRankerVersion || '공고 랭커');
+      setText('capabilityCatalogState', capabilityCatalogStateLabel(capability));
+      setText('capabilityCatalogDetail', capabilityCatalogDetail(capability));
+      setText('todayRecommendationCount', recommendationLogCount(logging));
+      setText('recommendationErrorCount', logging.recommendationLoggingStatus === 'failed' ? '1' : '0');
+      setText('supabaseUrlStatus', logging.supabaseConfigured ? '설정됨' : '확인 필요');
+      setText('serviceRoleStatus', '서버 전용');
+      setTagText('capabilityCatalogSourceStatus', capability.usesSupabase ? 'Supabase 연결' : 'Fallback 확인', capability.usesSupabase ? 'green' : 'yellow');
+      setText('visitorUsageStatus', visitors.message || '방문자/사용량 분석은 아직 수집하지 않습니다.');
+      renderDailySummary(latestAuthUsers);
+      renderDashboardJobs(latestLiveJobs);
+      renderJobsTable(latestLiveJobs);
+      renderRecommendationTable(data);
+      renderOperationalAlerts();
+      renderSyncHistory();
+    }
+
+    function renderApiUnavailable() {
+      setText('activeJobs', '연결 필요');
+      setText('dashboardModelState', '연결 필요');
+      setText('lastSync', '-');
+      setTableMessage('dashboardJobsTableBody', 5, '관리 API 또는 live-jobs API에 연결되지 않았습니다.');
+      setTableMessage('jobsTableBody', 5, '공고 데이터를 불러오지 못했습니다.');
+      setText('visitorUsageStatus', '관리 API에 연결되지 않았습니다.');
+      renderOperationalAlerts();
+    }
+
+    function renderDailySummary(users) {
+      const tbody = $('dailySummaryBody');
+      if (!tbody) return;
+      const today = new Date();
+      const todayKey = dateKey(today);
+      const todayUsers = users.filter((user) => dateKey(new Date(user.createdAt || 0)) === todayKey).length;
+      const total7 = users.filter((user) => {
+        const created = new Date(user.createdAt || 0);
+        return Number.isFinite(created.getTime()) && (today - created) <= 7 * 24 * 60 * 60 * 1000;
+      }).length;
+      const errorCount = latestStatusData?.recommendation?.recommendationLogging?.recommendationLoggingStatus === 'failed' ? 1 : 0;
+      tbody.innerHTML = '<tr class="highlight"><td>' + todayKey + '</td><td>' + formatNumber(todayUsers) + '</td><td>' + recommendationLogCount(latestStatusData?.recommendation?.recommendationLogging || {}) + '</td><td>미수집</td><td>' + formatNumber(errorCount) + '</td></tr><tr><td>최근 7일 합계</td><td>' + formatNumber(total7) + '명</td><td>미수집</td><td>미수집</td><td>' + formatNumber(errorCount) + '건</td></tr>';
+    }
+
+    function renderDashboardJobs(jobs) {
+      const tbody = $('dashboardJobsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = jobs.slice(0, 5).map((job) => '<tr><td>' + escapeHtml(jobTitle(job)) + '</td><td>' + escapeHtml(job.region || job.location || '-') + '</td><td>' + escapeHtml(job.jobType || job.predictedJobClass || '-') + '</td><td><span class="tag green">' + escapeHtml(job.statusLabel || '채용중') + '</span></td><td>상세</td></tr>').join('') || '<tr><td colspan="5">현재 표시할 공고가 없습니다.</td></tr>';
+    }
+
+    function renderJobsTable(jobs) {
+      const tbody = $('jobsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = jobs.slice(0, 12).map((job) => '<tr><td>' + escapeHtml(jobTitle(job)) + '</td><td>' + escapeHtml(job.company || '-') + '</td><td>' + escapeHtml(job.region || job.location || '-') + '</td><td>' + escapeHtml(job.jobType || job.predictedJobClass || '-') + '</td><td><span class="tag green">' + escapeHtml(job.statusLabel || '채용중') + '</span></td></tr>').join('') || '<tr><td colspan="5">현재 표시할 공고가 없습니다.</td></tr>';
+    }
+
+    function renderRecommendationTable(data) {
+      const tbody = $('recommendationTableBody');
+      if (!tbody) return;
+      const rec = data?.recommendation || {};
+      const capability = data?.capabilityCatalog || rec.capabilityCatalog || {};
+      const capabilityCounts = capability.counts || {};
+      const rows = [];
+      rows.push(['현재', '시스템', '프로필 모델 ' + (rec.profileModelVersion || '-'), '-', data?.service?.modelLoaded ? '사용 가능' : '확인 필요']);
+      rows.push(['현재', '시스템', '공고 랭커 ' + (rec.postingRankerVersion || '-'), '-', rec.postingRankerAvailable ? '사용 가능' : '확인 필요']);
+      rows.push(['현재', '시스템', '역량 마스터 ' + formatNumber(capabilityCounts.items || 0) + '개', capability.usesSupabase ? 'Supabase' : sourceLabel(capability.source), capability.status === 'ready' ? '사용 가능' : '확인 필요']);
+      tbody.innerHTML = rows.map((row) => '<tr><td>' + row[0] + '</td><td>' + row[1] + '</td><td>' + escapeHtml(row[2]) + '</td><td>' + row[3] + '</td><td><span class="tag ' + (row[4] === '사용 가능' ? 'green' : 'yellow') + '">' + row[4] + '</span></td></tr>').join('');
+    }
+
+    function renderOperationalAlerts() {
+      const list = $('operationalAlerts');
+      if (!list) return;
+      const alerts = [];
+      const status = latestStatusData || {};
+      if (status.visitors?.status === 'not_collected') alerts.push(['사용량 분석 미수집', status.visitors.message, '대기', '']);
+      if (status.service && !status.service.modelLoaded) alerts.push(['프로필 모델 점검 필요', '추천 모델이 로드되지 않았습니다.', '중요', 'red']);
+      if (status.recommendation && !status.recommendation.postingRankerAvailable) alerts.push(['공고 랭커 점검 필요', status.recommendation.postingRankerLoadError || '랭커 모델이 로드되지 않았습니다.', '중요', 'red']);
+      const capability = status.capabilityCatalog || status.recommendation?.capabilityCatalog || {};
+      if (capability.status && capability.status !== 'ready') alerts.push(['역량 마스터 DB 점검 필요', capability.fallbackReason || '역량 카탈로그를 불러오지 못했습니다.', '중요', 'red']);
+      else if (capability.status === 'ready' && !capability.usesSupabase) alerts.push(['역량 마스터 fallback 사용 중', '운영 환경에서는 Supabase 역량 마스터를 기준 데이터로 사용해야 합니다.', '확인', 'yellow']);
+      if (!latestAuthUsers.length) alerts.push(['회원 데이터 확인 필요', '관리자 권한 또는 Supabase Auth API 연결을 확인하세요.', '확인', 'yellow']);
+      if (!latestLiveJobs.length) alerts.push(['공고 데이터 확인 필요', 'live-jobs API에서 공고가 내려오지 않았습니다.', '확인', 'yellow']);
+      if (!alerts.length) alerts.push(['운영 상태 정상', '현재 관리자 화면에서 확인 가능한 오류가 없습니다.', '정상', 'green']);
+      list.innerHTML = alerts.map(([title, body, tag, cls]) => '<div class="list-row"><div class="avatar">!</div><div><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(body || '') + '</span></div><span class="tag ' + cls + '">' + tag + '</span></div>').join('');
+    }
+
+    function renderSyncHistory() {
+      const list = $('syncHistoryList');
+      if (!list) return;
+      const syncs = adminEvents.filter((event) => event.action.includes('동기화') || event.action.includes('공고 조회')).slice(0, 4);
+      list.innerHTML = syncs.map((event) => '<div class="list-row"><div class="avatar">↻</div><div><strong>' + escapeHtml(event.timeText + ' ' + event.result) + '</strong><span>' + escapeHtml(event.action + ' · ' + event.target) + '</span></div><span class="tag ' + (event.result === '성공' ? 'green' : 'red') + '">' + event.result + '</span></div>').join('') || '<div class="list-row"><div class="avatar">-</div><div><strong>동기화 기록 없음</strong><span>아직 실행된 공고 동기화가 없습니다.</span></div><span class="tag">대기</span></div>';
+    }
+
+    function pushAdminLog(action, target, result) {
+      adminEvents.unshift({ time: new Date(), timeText: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }), action, target, result });
+      adminEvents = adminEvents.slice(0, 30);
+      renderLogsTable();
+    }
+
+    function renderLogsTable() {
+      const tbody = $('logsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = adminEvents.map((event) => '<tr><td>' + event.timeText + '</td><td>현재 관리자</td><td>' + escapeHtml(event.action) + '</td><td>' + escapeHtml(event.target) + '</td><td><span class="tag ' + (event.result === '성공' ? 'green' : 'red') + '">' + escapeHtml(event.result) + '</span></td></tr>').join('') || '<tr><td colspan="5">현재 세션에서 기록된 관리자 작업이 없습니다.</td></tr>';
+    }
+
+    function buildFallbackStatus(health, liveJobs) {
+      const rows = Number(liveJobs?.diagnostics?.postingRows || liveJobs?.jobs?.length || health?.postingRows || 0);
+      return {
+        generatedAt: new Date().toISOString(),
+        service: { modelLoaded: !!health.modelLoaded, modelVersion: health.modelVersion, postingSource: liveJobs.source || health.postingSource },
+        liveJobs: { runtime: { activePostingRows: rows, source: liveJobs.source || health.postingSource }, snapshot: liveJobs.diagnostics || {} },
+        recommendation: { postingRankerAvailable: !!health.postingRankerAvailable, postingRankerVersion: health.postingRankerVersion, profileModelVersion: health.modelVersion },
+        capabilityCatalog: { status: 'unknown', source: '관리 API 필요', usesSupabase: false, counts: { items: 0, selectable: 0, blocked: 0 } },
+        visitors: { status: 'not_collected', message: '방문자/사용량 분석은 아직 수집하지 않습니다.' }
+      };
+    }
+
+    function extractJobs(payload) { return Array.isArray(payload?.jobs) ? payload.jobs : []; }
+    function jobTitle(job) { return job.title || job.job_title || job.jobName || '채용공고'; }
+    function countUnmappedJobs(jobs) { return jobs.filter((job) => !job.jobType && !job.predictedJobClass).length; }
+    function actionIcon(type) {
+      if (type === 'search') return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>';
+      if (type === 'mail') return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m4 7 8 6 8-6"></path></svg>';
+      return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 14h10l1-14"></path><path d="M9 7V4h6v3"></path></svg>';
+    }
+    function recommendationLogCount(logging) { const count = Number(logging.count ?? logging.todayCount ?? logging.recommendationCount); return Number.isFinite(count) ? formatNumber(count) : '미수집'; }
+    function primaryProvider(user) { return (Array.isArray(user.providers) && user.providers[0]) || user.primaryProvider || 'email'; }
+    function tagClass(provider) { return provider === 'google' ? 'blue' : provider === 'kakao' ? 'yellow' : ''; }
+    function providerLabel(provider) { return provider === 'kakao' ? 'Kakao' : provider === 'google' ? 'Google' : provider === 'email' ? 'Email' : provider || 'Email'; }
+    function providerInitial(provider, fallback) { return provider === 'kakao' ? 'K' : provider === 'google' ? 'G' : provider === 'email' ? '@' : String(fallback || 'U').slice(0,1).toUpperCase(); }
+    function sourceLabel(source) { return ({ supabase_live: 'Supabase', local_live_snapshot: '로컬 스냅샷', static_csv: '정적 CSV', live_empty: '공고 없음', not_loaded: '미로드' })[source] || source || '-'; }
+    function formatNumber(value) { const n = Number(value); return Number.isFinite(n) ? n.toLocaleString('ko-KR') : '-'; }
+    function formatDate(value) { if (!value) return '-'; const d = new Date(value); return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('ko-KR'); }
+    function formatDateTime(value) { if (!value) return '-'; const d = new Date(value); return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+    function formatTime(value) { if (!value) return '-'; const d = new Date(value); return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }); }
+    function dateKey(value) { const d = value instanceof Date ? value : new Date(value); return Number.isNaN(d.getTime()) ? '-' : d.toISOString().slice(0, 10); }
+    function capabilityCatalogStateLabel(capability) {
+      if (!capability || !capability.status) return '확인 필요';
+      if (capability.status !== 'ready') return '확인 필요';
+      return capability.usesSupabase ? 'Supabase 연결' : '로컬 기준';
+    }
+    function capabilityCatalogDetail(capability) {
+      const counts = capability?.counts || {};
+      const items = formatNumber(counts.items || 0);
+      const selectable = formatNumber(counts.selectable || ((counts.suitable || 0) + (counts.caution || 0)));
+      const blocked = formatNumber(counts.blocked || 0);
+      const source = capability?.usesSupabase ? 'Supabase' : sourceLabel(capability?.source);
+      if (capability?.fallbackReason) return capability.fallbackReason;
+      return source + ' · 전체 ' + items + '개 · 선택 가능 ' + selectable + '개 · 제외 ' + blocked + '개';
+    }
+    function setText(id, value) { const el = $(id); if (el) el.textContent = value; }
+    function setTagText(id, value, cls) {
+      const el = $(id);
+      if (!el) return;
+      el.textContent = value;
+      el.className = 'tag ' + (cls || '');
+    }
+    function setTableMessage(id, colSpan, message) { const el = $(id); if (el) el.innerHTML = '<tr><td colspan="' + colSpan + '">' + escapeHtml(message) + '</td></tr>'; }
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch])); }
+
+    document.querySelectorAll('[data-target]').forEach(item => {
+      item.addEventListener('click', event => {
+        event.preventDefault();
+        const key = item.dataset.target;
+        history.replaceState(null, '', '#' + key);
+        showAdminPage(key);
+      });
+    });
+    const adminFrame = document.querySelector('.admin-frame');
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    if (adminFrame && sidebarToggle) {
+      sidebarToggle.addEventListener('click', () => {
+        const isCollapsed = adminFrame.classList.toggle('sidebar-collapsed');
+        sidebarToggle.textContent = isCollapsed ? '›' : '‹';
+        sidebarToggle.title = isCollapsed ? '왼쪽 메뉴 열기' : '왼쪽 메뉴 접기';
+        sidebarToggle.setAttribute('aria-label', sidebarToggle.title);
+      });
+    }
+    $('authUsersRefreshButton')?.addEventListener('click', loadAuthUsers);
+    $('authProviderFilter')?.addEventListener('change', loadAuthUsers);
+    $('authUserSearch')?.addEventListener('input', () => {
+      window.clearTimeout(window.__authSearchTimer);
+      window.__authSearchTimer = window.setTimeout(loadAuthUsers, 260);
+    });
+    $('syncButton')?.addEventListener('click', syncLiveJobs);
+    $('adminGoogleLoginButton')?.addEventListener('click', () => startAdminOAuthLogin('google'));
+    $('adminKakaoLoginButton')?.addEventListener('click', () => startAdminOAuthLogin('kakao'));
+    $('authUsersTableBody')?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-auth-delete]');
+      if (button) deleteAuthUser(button.dataset.authDelete, button.dataset.authLabel);
+    });
+    $('adminLogoutButton')?.addEventListener('click', async () => {
+      const client = await adminSupabase();
+      if (client) await client.auth.signOut();
+      adminAccessToken = '';
+      adminSessionUser = null;
+      updateAdminAuthUi(null);
+      location.hash = '#dashboard';
+    });
+    window.addEventListener('hashchange', () => showAdminPage(currentPageKey()));
+    showAdminPage(currentPageKey());
+    renderLogsTable();
+    initAdminAuth().finally(loadDashboard);
+
+  </script>
+</body>
+</html>

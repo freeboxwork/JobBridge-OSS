@@ -1,0 +1,72 @@
+name: 버그 신고
+description: 재현 가능한 기능 오류나 예기치 않은 동작을 알려 주세요.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        신고해 주셔서 감사합니다. 실제 개인정보, 장애 정보, 이력서, 토큰은 첨부하지 마세요. 보안 또는 개인정보 노출 문제는 공개 이슈 대신 보안 정책의 비공개 채널을 이용해 주세요.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 사전 확인
+      options:
+        - label: 기존 이슈에서 같은 문제를 찾지 못했습니다.
+          required: true
+        - label: 이 신고에 실제 개인정보나 비밀값을 포함하지 않았습니다.
+          required: true
+        - label: 보안 취약점 신고가 아님을 확인했습니다.
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 문제 요약
+      description: 무엇이 잘못되었는지 한두 문장으로 설명해 주세요.
+      placeholder: 추천 결과를 연 뒤 뒤로 가면 선택한 지역이 사라집니다.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 절차
+      description: 가짜 데이터로 번호를 매겨 작성해 주세요.
+      placeholder: |
+        1. 로컬 사이트를 엽니다.
+        2. 예시 프로필을 선택합니다.
+        3. 추천 보기를 누릅니다.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대한 동작
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 동작과 오류 메시지
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 버전 또는 커밋
+      placeholder: main @ abc1234 또는 v0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 실행 환경
+      description: 운영체제, 브라우저, Python/Node 버전, 배포 방식을 적어 주세요.
+      placeholder: Windows 11, Chrome 128, Python 3.12, 로컬 실행
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: 추가 자료
+      description: 개인정보를 지운 로그, 화면, 최소 재현 저장소가 있다면 첨부해 주세요. 이미지에는 대체 설명을 덧붙여 주세요.

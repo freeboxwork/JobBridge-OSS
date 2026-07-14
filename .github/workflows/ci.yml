@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m compileall Scripts Services
+      - run: python -m pytest -q
+        env:
+          PYTHONPATH: ${{ github.workspace }}/Services/jobbridge_inference
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Site/package-lock.json
+      - run: npm ci
+        working-directory: Site
+      - run: node --check api/_supabaseAdmin.js
+        working-directory: Site
+      - run: node --check api/admin/sync-live-jobs.js
+        working-directory: Site

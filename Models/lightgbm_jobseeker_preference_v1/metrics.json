@@ -1,0 +1,24 @@
+{
+  "model_version": "lightgbm_jobseeker_preference_v1",
+  "dataset": "Data/processed/oss_preference_v1/training_dataset.csv (generated locally; not committed)",
+  "rows": 41719,
+  "train_rows": 33375,
+  "test_rows": 8344,
+  "classes": 28,
+  "random_state": 42,
+  "best_iteration": 310,
+  "accuracy_top1": 0.2604266538830297,
+  "accuracy_top3": 0.5584851390220518,
+  "accuracy_top5": 0.7269894534995206,
+  "balanced_accuracy": 0.2604840780459451,
+  "macro_f1": 0.18331704487181172,
+  "weighted_f1": 0.28595288046114936,
+  "log_loss": 2.485653360371268,
+  "model_file": "Models/lightgbm_jobseeker_preference_v1/jobbridge_preference_model.joblib",
+  "label_semantics": "registered desired job class; preference prior, not employment success",
+  "limitations": [
+    "Demographic and regional variables do not determine an individual's aptitude.",
+    "Predictions reflect historical registered preferences, not employment outcomes.",
+    "Use only as an optional prior; user choices and accessibility needs must override it."
+  ]
+}

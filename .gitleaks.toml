@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated dependency directories are excluded; committed files remain scanned."
+paths = [
+  '''(^|[\\/])\.venv[\\/]''',
+  '''(^|[\\/])node_modules[\\/]''',
+]

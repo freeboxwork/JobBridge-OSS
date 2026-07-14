@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 보안 취약점·개인정보 노출 비공개 신고
+    url: https://github.com/freeboxwork/JobBridge-OSS/security/advisories/new
+    about: 공개하면 악용될 수 있는 문제나 개인정보 노출은 이 비공개 채널을 이용해 주세요.
